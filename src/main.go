@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/gdamore/tcell/v2"
@@ -12,22 +11,26 @@ var GameBG Background
 type Background struct {
 	Win_Size int
 	Screen   *tcell.Screen
-	Style tcell.Style
+	Style    tcell.Style
 }
 
 func InitScreen() {
 	screen, err := tcell.NewScreen()
 	if err != nil {
-		fmt.Println("error creating screen.", err.Error())
-		return 	
+		LogData("error creating screen. " + err.Error())
+		return
 	}
 
 	if err := screen.Init(); err != nil {
-		fmt.Println("error initialising screen.", err.Error())
+		LogData("error initialising screen. " + err.Error())
 		return
 	}
 
 	defer screen.Fini()
+
+	BACK_STYLED := tcell.StyleDefault.
+		Foreground(tcell.ColorBlack).
+		Background(tcell.ColorWhite)
 
 	screen.SetStyle(tcell.StyleDefault.
 		Foreground(tcell.ColorBlack).
@@ -36,11 +39,10 @@ func InitScreen() {
 	screen.Clear()
 
 	width, height := screen.Size()
-	fmt.Println(width, height)
 
-	// BACK_STYLED := tcell.StyleDefault.
-	// 	Foreground(tcell.ColorBlack).
-	// 	Background(tcell.ColorWhite)
+	screen.SetContent(10, 10, 'a', nil, BACK_STYLED)
+	emptyFunc(width, height)
+
 	//
 	// GREY_STYLED := tcell.StyleDefault.
 	// 	Foreground(tcell.ColorLightGray).
@@ -57,10 +59,13 @@ func InitScreen() {
 	// addStrHoriz(0, height-1, "quit: esc", BACK_STYLED, screen)
 
 	for {
+		screen.Clear()
+		screen.Show()
+
 		event := screen.PollEvent()
 		switch event := event.(type) {
 		case *tcell.EventKey:
-			LogData(string(event.Rune())+"\n")
+			LogData(string(event.Rune()))
 			if event.Key() == tcell.KeyEscape || string(event.Rune()) == "q" {
 				return
 			} else if event.Key() == tcell.KeyLeft {
@@ -75,15 +80,18 @@ func InitScreen() {
 			} else if event.Key() == tcell.KeyDown {
 				continue
 
-			} 		
+			}
 		}
-		// t1.showTime()
-		screen.Show()
 	}
+
 }
 
 func main() {
 	InitScreen()
+}
+
+func emptyFunc(x, y int) {
+	return
 }
 
 func LogData(data string) {
@@ -99,7 +107,7 @@ func LogData(data string) {
 
 	defer file.Close()
 
-	if _, err := file.Write([]byte(data)); err != nil {
+	if _, err := file.Write([]byte(data + "\n")); err != nil {
 		return
 	}
 }
